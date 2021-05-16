@@ -12,6 +12,11 @@ import (
 	"github.com/spf13/viper"
 )
 
+type RepoManifest struct {
+	Name    string
+	Version string
+}
+
 var syncCommand = &cobra.Command{
 	Use:   "sync",
 	Short: "sync repos",
@@ -19,16 +24,11 @@ var syncCommand = &cobra.Command{
 	Run:   runSyncCommand,
 }
 
-type RepoManifest struct {
-	Name    string
-	Version string
-}
-
 func runSyncCommand(cmd *cobra.Command, args []string) {
-	reposDir := viper.GetString("reposDir")
-	commandsDbDir := viper.GetString("commandsDbDir")
+	reposDir := viper.GetString("repos")
+	commandsDbDir := viper.GetString("db")
 
-	commandsDB, err := os.OpenFile(fmt.Sprintf("%s/%s", commandsDbDir, "commandsdb.update"), os.O_RDWR|os.O_CREATE, 0755)
+	commandsDB, err := os.OpenFile(fmt.Sprintf("%s/%s", commandsDbDir, "db.update"), os.O_RDWR|os.O_CREATE, 0755)
 	commandsDB.Truncate(0)
 
 	if err != nil {
@@ -70,6 +70,17 @@ func runSyncCommand(cmd *cobra.Command, args []string) {
 			)
 		}
 	}
+
+	cleanUpAfterSync()
+}
+
+func cleanUpAfterSync() {
+	commandsDbDir := viper.GetString("db")
+
+	original := fmt.Sprintf("%s/%s", commandsDbDir, "db")
+	updated := fmt.Sprintf("%s/%s", commandsDbDir, "db.update")
+
+	os.Rename(updated, original)
 }
 
 func init() {

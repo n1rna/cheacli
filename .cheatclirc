@@ -1,5 +1,4 @@
 {
-    "reposDir": "/Users/nima/p/cheatcli-repo",
-    "conf1": "asdasdsad"
+    "repo": "/home/nima/p/cheatcli/.repos",
+    "db": "/home/nima/p/cheatcli"
 }
-

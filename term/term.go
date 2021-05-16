@@ -7,10 +7,9 @@ import (
 
 	markdown "github.com/MichaelMure/go-term-markdown"
 	"github.com/tigrawap/slit"
-	// "github.com/gomarkdown/markdown"
 )
 
-func ShowMDFile(path string) {
+func RenderMarkdownFile(path string) {
 	source, err := ioutil.ReadFile(path)
 	if err != nil {
 		panic(err)
@@ -18,14 +17,7 @@ func ShowMDFile(path string) {
 
 	result := markdown.Render(string(source), 80, 6)
 
-	// fmt.Println(result)
-	// extensions := parser.CommonExtensions | parser.AutoHeadingIDs
-	// parser := parser.NewWithExtensions(extensions)
-
-	// // md := []byte("markdown text")
-	// html := markdown.ToHTML(source, parser, nil)
-	CheatOutput(result)
-	// fmt.Println(string(result))
+	OutputStreamFromString(result)
 }
 
 func OutputStream(ch chan string) {
@@ -40,16 +32,13 @@ func OutputStream(ch chan string) {
 		os.Exit(1)
 	}
 
-	// Probably should pass config to all slit constructors, with sane defaults
 	s.SetFollow(false)
 	s.SetKeepChars(0)
 
 	s.Display()
 }
 
-func CheatOutput(output []byte) {
-	// fmt.Println(string(output))
-
+func OutputStreamFromString(output []byte) {
 	ch := make(chan string)
 
 	var s *slit.Slit
@@ -68,7 +57,6 @@ func CheatOutput(output []byte) {
 		close(ch)
 	}()
 
-	// Probably should pass config to all slit constructors, with sane defaults
 	s.SetFollow(false)
 	s.SetKeepChars(0)
 

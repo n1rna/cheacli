@@ -25,13 +25,18 @@ func Execute() {
 }
 
 func init() {
-	viper.SetDefault("reposDir", "/Users/nima/p/cheatcli-repo")
-	viper.SetDefault("commandsDbDir", "/Users/nima/p/cheatcli-repo")
+	home, err := homedir.Dir()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	viper.SetDefault("repos", fmt.Sprintf("%s/.cheats/%s", home, "repos"))
+	viper.SetDefault("db", fmt.Sprintf("%s/.cheats", home))
 
 	cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVar(&cfgFile, "config", "c", "config file (default is $HOME/.cheatclirc)")
-
+	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.cheats/config)")
 }
 
 func initConfig() {
@@ -47,7 +52,7 @@ func initConfig() {
 		}
 
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cheatclirc")
+		viper.SetConfigName(".cheats/config")
 	}
 
 	if err := viper.ReadInConfig(); err == nil {
