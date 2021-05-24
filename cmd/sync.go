@@ -17,11 +17,13 @@ type RepoManifest struct {
 	Version string
 }
 
-var syncCommand = &cobra.Command{
-	Use:   "sync",
-	Short: "sync repos",
-	Long:  `sync repos`,
-	Run:   runSyncCommand,
+func NewSyncCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "sync",
+		Short: "sync repos",
+		Long:  `sync repos`,
+		Run:   runSyncCommand,
+	}
 }
 
 func runSyncCommand(cmd *cobra.Command, args []string) {
@@ -84,6 +86,7 @@ func cleanUpAfterSync() {
 }
 
 func init() {
+	var syncCommand = NewSyncCommand()
 	syncCommand.Flags().StringP("repo", "r", "", "Sync only specific repository")
 
 	RootCmd.AddCommand(syncCommand)

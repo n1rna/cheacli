@@ -17,11 +17,13 @@ type Cheat struct {
 	Columns  string
 }
 
-var showCommand = &cobra.Command{
-	Use:   "show [repo] [cheat]",
-	Short: "show cheatsheet",
-	Long:  `Show the cheatsheet if it exists.`,
-	Run:   runShowCommand,
+func NewShowCommand() *cobra.Command {
+	return &cobra.Command{
+		Use:   "show [repo] [cheat]",
+		Short: "show cheatsheet",
+		Long:  `Show the cheatsheet if it exists.`,
+		Run:   runShowCommand,
+	}
 }
 
 func runShowCommand(cmd *cobra.Command, args []string) {
@@ -128,6 +130,7 @@ func readCommandsDB() (db []byte, err error) {
 }
 
 func init() {
+	var showCommand = NewShowCommand()
 	showCommand.PersistentFlags().BoolP("list", "l", false, "List all subcommands")
 	showCommand.PersistentFlags().Bool("repositories", false, "List all subcommands")
 	showCommand.PersistentFlags().BoolP("repo", "r", false, "Specify the repository")
