@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"os/exec"
 
 	"github.com/ldez/go-git-cmd-wrapper/clone"
 	"github.com/ldez/go-git-cmd-wrapper/git"
@@ -30,8 +31,11 @@ func runInitCommand(cmd *cobra.Command, args []string) {
 	os.Chdir(reposDir)
 	repositories := viper.GetStringMap("repositories")
 	for _, repo := range repositories {
-		output, _ := git.Clone(clone.Repository(repo.(map[string]interface{})["origin"].(string)), clone.Progress)
-		fmt.Println(output)
+		git.Clone(
+			clone.Repository(repo.(map[string]interface{})["origin"].(string)),
+			clone.Progress,
+			git.CmdExecutor(streamingGitExecutor),
+		)
 	}
 	os.Chdir(cwd)
 
@@ -44,4 +48,28 @@ func init() {
 	var initCommand = NewInitCommand()
 
 	RootCmd.AddCommand(initCommand)
+}
+
+func streamingGitExecutor(name string, debug bool, args ...string) (string, error) {
+
+	cmd := exec.Command(name, args...)
+
+	stdout, _ := cmd.StdoutPipe()
+	cmd.Stderr = cmd.Stdout
+
+	if err := cmd.Start(); err != nil {
+		return "", err
+	}
+	for {
+		tmp := make([]byte, 1024)
+		_, err := stdout.Read(tmp)
+		fmt.Print(string(tmp))
+		if err != nil {
+			break
+		}
+	}
+
+	cmd.Wait()
+
+	return "", nil
 }
