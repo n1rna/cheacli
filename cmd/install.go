@@ -36,8 +36,8 @@ func runInstallCommand(cmd *cobra.Command, args []string) {
 	fmt.Println(output)
 	os.Chdir(cwd)
 
-	re := regexp.MustCompile(`.*/(.*)\.git`)
-	repoName := re.Find([]byte(origin))
+	re := regexp.MustCompile(`.*\/(.*)\.git`)
+	repoName := re.FindAllStringSubmatch(origin, 1)[0][1]
 	err = validateInstallation(string(repoName))
 	if err != nil {
 		fmt.Println(err)
@@ -81,6 +81,7 @@ func validateInstallation(repoName string) (err error) {
 	if err := json.Unmarshal(byteValue, &manifest); err != nil {
 		return err
 	}
+
 	return nil
 }
 

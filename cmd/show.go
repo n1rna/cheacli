@@ -1,21 +1,14 @@
 package cmd
 
 import (
-	"cheatcli/term"
+	"cheat/db"
+	"cheat/term"
 	"fmt"
-	"os"
-	"regexp"
 
 	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
-
-type Cheat struct {
-	Name     string
-	FileName string
-	Columns  string
-}
 
 func NewShowCommand() *cobra.Command {
 	return &cobra.Command{
@@ -41,67 +34,43 @@ func runShowCommand(cmd *cobra.Command, args []string) {
 }
 
 func findAndShowCheat(cmd *cobra.Command, args []string) {
-	db, err := readCommandsDB()
+	fdb := db.GetDatabase("db", "")
+	fdb.Read()
 
-	if err != nil {
-		fmt.Println("Database could not be found. Please try syncing again.\n")
-		RootCmd.Help()
-		return
-	}
-
-	var re *regexp.Regexp
+	var commands []*db.CheatCommand
 
 	if len(args) > 1 {
-		re = regexp.MustCompile(fmt.Sprintf(`\[(%s)\]\s(%s)\:(.*\.md)\:(.*)`, args[0], args[1]))
+		commands = fdb.FindMatchedCheatsForRepo(args[0], args[1])
 	} else {
-		re = regexp.MustCompile(fmt.Sprintf(`\[(.*)\]\s(%s)\:(.*\.md)\:(.*)`, args[0]))
+		commands = fdb.FindMatchedCheats(args[0])
 	}
 
-	matches := re.FindAllStringSubmatch(string(db), -1)
-
-	if len(matches) < 1 {
-		fmt.Println("The cheatsheet you asked does not exist :(\n")
+	if len(commands) < 1 {
+		fmt.Println("The cheatsheet you asked does not exist :(")
 		cmd.Help()
 		return
 	}
 
-	if len(matches) > 1 {
-		fmt.Println("More than one command matched. Specify the repo.\n")
+	if len(commands) > 1 {
+		fmt.Println("More than one command matched. Specify the repo")
 		cmd.Help()
 		return
 	}
 
-	dir := getFileDirectory(matches[0][1], matches[0][3])
+	dir := getFileDirectory(commands[0].Repo, commands[0].FileName)
 	term.RenderMarkdownFile(dir)
 }
 
 func showAvailableCheats() {
-	db, err := readCommandsDB()
-
-	if err != nil {
-		fmt.Println("Database could not be found. Please try syncing again.\n")
-		RootCmd.Help()
-		return
-	}
-
-	re := regexp.MustCompile(`\[(.*)\]\s(.*)\:(.*\.md)\:(.*)`)
-
-	commands := make(map[string][]*Cheat)
-
-	matches := re.FindAllStringSubmatch(string(db), -1)
-	for _, v := range matches {
-		commands[v[1]] = append(commands[v[1]], &Cheat{
-			Name:     v[2],
-			FileName: v[3],
-			Columns:  v[4],
-		})
-	}
-
-	ch := make(chan string)
+	fdb := db.GetDatabase("db", "")
+	fdb.Read()
 
 	yellow := color.New(color.FgYellow).SprintFunc()
 	red := color.New(color.FgRed).SprintFunc()
 
+	commands := fdb.GetAllCommands()
+
+	ch := make(chan string)
 	go func() {
 		for repo, cheats := range commands {
 			repoLine := fmt.Sprintf("%s - %s", yellow("REPO"), red(repo))
@@ -120,13 +89,6 @@ func showAvailableCheats() {
 func getFileDirectory(repoName string, fileName string) string {
 	reposDir := viper.GetString("repos")
 	return fmt.Sprintf("%s/%s/cheats/%s", reposDir, repoName, fileName)
-}
-
-func readCommandsDB() (db []byte, err error) {
-	dbDirectory := viper.GetString("db")
-
-	db, err = os.ReadFile(fmt.Sprintf("%s/%s", dbDirectory, "db"))
-	return
 }
 
 func init() {

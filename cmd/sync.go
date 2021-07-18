@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"cheat/db"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -27,6 +28,20 @@ func NewSyncCommand() *cobra.Command {
 }
 
 func runSyncCommand(cmd *cobra.Command, args []string) {
+	fdb := db.GetDatabase("db", "")
+	fdb.Open()
+	defer fdb.SaveAndClose()
+
+	if repo, _ := cmd.Flags().GetString("repo"); repo != "" {
+		updateDatabaseForRepository(fdb, repo)
+		return
+	}
+	rebuildDatabase(fdb)
+}
+
+func rebuildDatabase(fdb *db.FileDB) {
+	fdb.Trunc()
+
 	reposDir := viper.GetString("repos")
 	commandsDbDir := viper.GetString("db")
 
@@ -47,42 +62,41 @@ func runSyncCommand(cmd *cobra.Command, args []string) {
 		if !repo.IsDir() {
 			continue
 		}
-		manifestJson, err := os.Open(fmt.Sprintf("%s/%s/%s", reposDir, repo.Name(), "manifest.json"))
-		if err != nil {
-			fmt.Println(err)
-		}
-		defer manifestJson.Close()
-
-		byteValue, _ := ioutil.ReadAll(manifestJson)
-		var manifest RepoManifest
-
-		json.Unmarshal(byteValue, &manifest)
-
-		cheatsDir := fmt.Sprintf("%s/%s/%s", reposDir, repo.Name(), "cheats")
-
-		cheats, err := ioutil.ReadDir(cheatsDir)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, cheat := range cheats {
-			commandName := strings.Replace(cheat.Name(), ".md", "", -1)
-			commandsDB.Write(
-				[]byte(fmt.Sprintf("[%s] %s:%s:%s\n", repo.Name(), commandName, cheat.Name(), "2")),
-			)
-		}
+		updateDatabaseForRepository(fdb, repo.Name())
 	}
-
-	cleanUpAfterSync()
 }
 
-func cleanUpAfterSync() {
-	commandsDbDir := viper.GetString("db")
+func updateDatabaseForRepository(fdb *db.FileDB, repoName string) {
+	fdb.TruncForRepo(repoName)
 
-	original := fmt.Sprintf("%s/%s", commandsDbDir, "db")
-	updated := fmt.Sprintf("%s/%s", commandsDbDir, "db.update")
+	reposDir := viper.GetString("repos")
 
-	os.Rename(updated, original)
+	fmt.Printf("Syncing repo %s ...\n", repoName)
+
+	manifestJson, err := os.Open(fmt.Sprintf("%s/%s/%s", reposDir, repoName, "manifest.json"))
+	if err != nil {
+		fmt.Println(err)
+	}
+	defer manifestJson.Close()
+
+	byteValue, _ := ioutil.ReadAll(manifestJson)
+	var manifest RepoManifest
+
+	json.Unmarshal(byteValue, &manifest)
+
+	cheatsDir := fmt.Sprintf("%s/%s/%s", reposDir, repoName, "cheats")
+
+	cheats, err := ioutil.ReadDir(cheatsDir)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	for _, cheat := range cheats {
+		commandName := strings.Replace(cheat.Name(), ".md", "", -1)
+		fdb.Append(
+			[]byte(fmt.Sprintf("[%s] %s:%s:%s\n", repoName, commandName, cheat.Name(), "2")),
+		)
+	}
 }
 
 func init() {

@@ -36,7 +36,7 @@ func init() {
 
 	cobra.OnInitialize(initConfig)
 
-	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.cheats/config)")
+	RootCmd.PersistentFlags().StringVarP(&cfgFile, "config", "c", "", "config file (default is $HOME/.config/cheat/.cheatclirc)")
 }
 
 func initConfig() {
@@ -52,7 +52,7 @@ func initConfig() {
 		}
 
 		viper.AddConfigPath(home)
-		viper.SetConfigName(".cheats/config")
+		viper.SetConfigName(".config/cheat/.cheatclirc")
 	}
 
 	if err := viper.ReadInConfig(); err == nil {
