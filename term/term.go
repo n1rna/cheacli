@@ -4,6 +4,9 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"syscall"
+
+	"golang.org/x/sys/unix"
 
 	markdown "github.com/MichaelMure/go-term-markdown"
 	"github.com/tigrawap/slit"
@@ -15,9 +18,14 @@ func RenderMarkdownFile(path string) {
 		panic(err)
 	}
 
-	result := markdown.Render(string(source), 80, 6)
+	cols, _, err := getwinsize()
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println("cols: ", cols)
+	_ = markdown.Render(string(source), 72, 6)
 
-	OutputStreamFromString(result)
+	// OutputStreamFromString(result)
 }
 
 func OutputStream(ch chan string) {
@@ -61,4 +69,17 @@ func OutputStreamFromString(output []byte) {
 	s.SetKeepChars(0)
 
 	s.Display()
+}
+
+func getwinsize() (int, int, error) {
+	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
+	if err != nil {
+		return 0, 0, err
+	}
+	ws, err := unix.IoctlGetWinsize(int(tty.Fd()), syscall.TIOCGWINSZ)
+	err2 := tty.Close()
+	if err != nil {
+		return 0, 0, err
+	}
+	return int(ws.Col), int(ws.Row), err2
 }
