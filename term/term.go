@@ -8,7 +8,7 @@ import (
 
 	"golang.org/x/sys/unix"
 
-	markdown "github.com/MichaelMure/go-term-markdown"
+	markdown "github.com/n1rna/go-term-markdown"
 	"github.com/tigrawap/slit"
 )
 
