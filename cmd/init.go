@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"cheat/utils"
 	"fmt"
 	"os"
 	"os/exec"
@@ -14,8 +15,8 @@ import (
 func NewInitCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "init",
-		Short: "init cli",
-		Long:  `init cli`,
+		Short: "Initialize cheatcli",
+		Long:  `Install main cheats repo and initialize the cheats database`,
 		Run:   runInitCommand,
 	}
 }
@@ -25,7 +26,7 @@ func runInitCommand(cmd *cobra.Command, args []string) {
 	reposDir := viper.GetString("repos")
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println("Something bad happened!")
+		utils.CommandError(cmd, "Something bad happened!", true)
 		return
 	}
 	os.Chdir(reposDir)

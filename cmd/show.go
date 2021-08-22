@@ -3,6 +3,7 @@ package cmd
 import (
 	"cheat/db"
 	"cheat/term"
+	"cheat/utils"
 	"fmt"
 
 	"github.com/fatih/color"
@@ -13,8 +14,8 @@ import (
 func NewShowCommand() *cobra.Command {
 	return &cobra.Command{
 		Use:   "show [repo] [cheat]",
-		Short: "show cheatsheet",
-		Long:  `Show the cheatsheet if it exists.`,
+		Short: "Show the requested cheatsheet",
+		Long:  `Show the cheatsheet if it exists in one of the repos.`,
 		Run:   runShowCommand,
 	}
 }
@@ -46,14 +47,12 @@ func findAndShowCheat(cmd *cobra.Command, args []string) {
 	}
 
 	if len(commands) < 1 {
-		fmt.Println("The cheatsheet you asked does not exist :(")
-		cmd.Help()
+		utils.CommandError(cmd, "The cheatsheet you asked does not exist :(", true)
 		return
 	}
 
 	if len(commands) > 1 {
-		fmt.Println("More than one command matched. Specify the repo")
-		cmd.Help()
+		utils.CommandError(cmd, "More than one command matched. Specify the repo", true)
 		return
 	}
 

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"cheat/utils"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -15,32 +16,44 @@ import (
 
 func NewInstallCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:   "install",
-		Short: "install repo",
-		Long:  `install new repository`,
+		Use:   "install [repositroy url]",
+		Short: "Install a new repository",
+		Long:  `Install new repositories from github by providing the git url`,
 		Run:   runInstallCommand,
 	}
 }
 
 func runInstallCommand(cmd *cobra.Command, args []string) {
 	// Install new repository
+	if len(args) == 0 {
+		utils.CommandError(cmd, "Please provide a repository url", true)
+		return
+	}
 	origin := args[0]
 	reposDir := viper.GetString("repos")
 	cwd, err := os.Getwd()
 	if err != nil {
-		fmt.Println("Something bad happened!", err)
+		utils.CommandError(cmd, fmt.Sprintf("Something bad happened! => %s", err), true)
 		return
 	}
 	os.Chdir(reposDir)
-	output, _ := git.Clone(clone.Repository(origin), clone.Progress)
-	fmt.Println(output)
-	os.Chdir(cwd)
 
 	re := regexp.MustCompile(`.*\/(.*)\.git`)
+	isValidUrl := re.Match([]byte(origin))
 	repoName := re.FindAllStringSubmatch(origin, 1)[0][1]
+
+	if !isValidUrl {
+		utils.CommandError(cmd, "Please provide a valid repository url", true)
+		return
+	}
+
+	git.Clone(clone.Repository(origin), clone.Progress, git.CmdExecutor(streamingGitExecutor))
+	os.Chdir(cwd)
+
 	err = validateInstallation(string(repoName))
 	if err != nil {
-		fmt.Println(err)
+		utils.CommandError(cmd, "The provided git repository is not a valid cheat repository", false)
+		cleanupInstallation(repoName)
 		return
 	}
 }
@@ -82,6 +95,12 @@ func validateInstallation(repoName string) (err error) {
 	}
 
 	return nil
+}
+
+func cleanupInstallation(repoName string) (err error) {
+	reposDir := viper.GetString("repos")
+	err = os.RemoveAll(fmt.Sprintf("%s/%s", reposDir, repoName))
+	return err
 }
 
 func init() {

@@ -13,8 +13,7 @@ var cfgFile string
 
 var RootCmd = &cobra.Command{
 	Use:   "cheatcli",
-	Short: "Cheat sheets in your cli",
-	Long:  `HaHaHaHaHaHaHaHa`,
+	Short: "Cheat sheets in your console",
 }
 
 func Execute() {
@@ -56,6 +55,6 @@ func initConfig() {
 	}
 
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Println("Using config file:", viper.ConfigFileUsed())
+		fmt.Println("\nUsing config file:", viper.ConfigFileUsed())
 	}
 }

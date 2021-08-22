@@ -1,12 +1,9 @@
 {
-    "repos": "/Users/nima/p/cheatcli/.repos",
-    "db": "/Users/nima/p/cheatcli",
+    "repos": ".CONFIGDIR/repos",
+    "db": ".CONFIGDIR",
     "repositories": {
         "main": {
-            "origin": "git@github.com:n1rna/cheatsheets.git"
-        },
-        "community": {
-            "origin": "git@github.com:n1rna/cheatsheets.git"
+            "origin": "https://github.com/n1rna/cheatsheets.git"
         }
     }
 }

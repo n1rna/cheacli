@@ -20,9 +20,9 @@ type RepoManifest struct {
 
 func NewSyncCommand() *cobra.Command {
 	return &cobra.Command{
-		Use:   "sync",
-		Short: "sync repos",
-		Long:  `sync repos`,
+		Use:   "sync [repository]",
+		Short: "Sync all installed repositories",
+		Long:  `Rebuild the cheats database from all existing repositories`,
 		Run:   runSyncCommand,
 	}
 }
