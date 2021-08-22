@@ -43,7 +43,6 @@ func runInstallCommand(cmd *cobra.Command, args []string) {
 		fmt.Println(err)
 		return
 	}
-
 }
 
 func validateInstallation(repoName string) (err error) {

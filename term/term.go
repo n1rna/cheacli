@@ -22,10 +22,11 @@ func RenderMarkdownFile(path string) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println("cols: ", cols)
-	_ = markdown.Render(string(source), 72, 6)
 
-	// OutputStreamFromString(result)
+	columnsNum := 2
+	result := markdown.Render(string(source), cols/columnsNum, columnsNum, 2)
+
+	OutputStreamFromString(result)
 }
 
 func OutputStream(ch chan string) {
