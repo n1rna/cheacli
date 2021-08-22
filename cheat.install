@@ -1,0 +1,9 @@
+post_install {
+    default_config_dir=$HOME/.config/cheat
+    mkdir -p $default_config_dir/repos
+    
+    cp .cheatclirc $default_config_dir
+    sed -i 's|\.CONFIGDIR|$default_config_dir|g' $default_config_dir/.cheatclirc
+
+    cheat init --config $default_config_dir/.cheatclirc
+}
