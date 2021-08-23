@@ -1,12 +1,11 @@
 package term
 
 import (
+	"cheat/utils"
+
 	"fmt"
 	"io/ioutil"
 	"os"
-	"syscall"
-
-	"golang.org/x/sys/unix"
 
 	markdown "github.com/n1rna/go-term-markdown"
 	"github.com/tigrawap/slit"
@@ -18,7 +17,7 @@ func RenderMarkdownFile(path string) {
 		panic(err)
 	}
 
-	cols, _, err := getwinsize()
+	cols, _, err := utils.GetWinSize()
 	if err != nil {
 		panic(err)
 	}
@@ -70,17 +69,4 @@ func OutputStreamFromString(output []byte) {
 	s.SetKeepChars(0)
 
 	s.Display()
-}
-
-func getwinsize() (int, int, error) {
-	tty, err := os.OpenFile("/dev/tty", os.O_RDWR, 0)
-	if err != nil {
-		return 0, 0, err
-	}
-	ws, err := unix.IoctlGetWinsize(int(tty.Fd()), syscall.TIOCGWINSZ)
-	err2 := tty.Close()
-	if err != nil {
-		return 0, 0, err
-	}
-	return int(ws.Col), int(ws.Row), err2
 }

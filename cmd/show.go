@@ -5,8 +5,8 @@ import (
 	"cheat/term"
 	"cheat/utils"
 	"fmt"
+	"strings"
 
-	"github.com/fatih/color"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 )
@@ -64,18 +64,32 @@ func showAvailableCheats() {
 	fdb := db.GetDatabase("db", "")
 	fdb.Read()
 
-	yellow := color.New(color.FgYellow).SprintFunc()
-	red := color.New(color.FgRed).SprintFunc()
-
 	commands := fdb.GetAllCommands()
 
 	ch := make(chan string)
 	go func() {
 		for repo, cheats := range commands {
-			repoLine := fmt.Sprintf("%s - %s", yellow("REPO"), red(repo))
-			ch <- repoLine
+			repoLine := fmt.Sprintf("%s %s", utils.Yellow("[Repository]"), utils.Red(repo))
+			maxLineLength := len(cheats[0].Name)
 			for _, cheat := range cheats {
-				cheatLine := fmt.Sprintf("%s - Fuck", cheat.Name)
+				if len(cheat.Name) > maxLineLength {
+					maxLineLength = len(cheat.Name)
+				}
+			}
+			ch <- repoLine
+			for i := 0; i < len(cheats); i++ {
+				color := utils.Blue
+				if i%4 == 0 {
+					color = utils.Green
+				}
+				var cheatLine string
+				if i < len(cheats)-1 {
+					padding := strings.Repeat(" ", maxLineLength-len(cheats[i].Name)+1)
+					cheatLine = fmt.Sprintf("%s%s%s", color(cheats[i].Name), padding, color(cheats[i+1].Name))
+					i++
+				} else {
+					cheatLine = fmt.Sprintf("%s", cheats[i].Name)
+				}
 				ch <- cheatLine
 			}
 		}

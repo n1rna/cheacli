@@ -2,7 +2,7 @@
 .PHONY: build usage install test
 
 PROGRAM=cheat
-DEFAULT_CONFIG_DIRECTORY = ${SUDO_USER}/.config/cheat
+DEFAULT_CONFIG_DIRECTORY = ${HOME}/.config/cheat
 
 build:
 	go build .
